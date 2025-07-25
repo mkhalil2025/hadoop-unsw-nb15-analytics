@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+    <!-- HDFS Configuration for UNSW-NB15 Analytics -->
+    
+    <!-- Namenode storage directories -->
+    <property>
+        <name>dfs.namenode.name.dir</name>
+        <value>file:///opt/hadoop/data/namenode</value>
+        <description>Directory for namenode metadata</description>
+    </property>
+    
+    <!-- Datanode storage directories -->
+    <property>
+        <name>dfs.datanode.data.dir</name>
+        <value>file:///opt/hadoop/data/datanode</value>
+        <description>Directory for datanode storage</description>
+    </property>
+    
+    <!-- Replication factor (single node cluster) -->
+    <property>
+        <name>dfs.replication</name>
+        <value>1</value>
+        <description>Default replication factor</description>
+    </property>
+    
+    <!-- Block size optimized for UNSW-NB15 dataset -->
+    <property>
+        <name>dfs.blocksize</name>
+        <value>67108864</value>
+        <description>64MB block size for better performance with medium datasets</description>
+    </property>
+    
+    <!-- Namenode settings -->
+    <property>
+        <name>dfs.namenode.checkpoint.dir</name>
+        <value>file:///opt/hadoop/data/namesecondary</value>
+    </property>
+    
+    <!-- Permissions (disabled for development ease) -->
+    <property>
+        <name>dfs.permissions.enabled</name>
+        <value>false</value>
+        <description>Disable permissions for student environment</description>
+    </property>
+    
+    <!-- WebHDFS enabled for web interface -->
+    <property>
+        <name>dfs.webhdfs.enabled</name>
+        <value>true</value>
+    </property>
+    
+    <!-- Namenode ports -->
+    <property>
+        <name>dfs.namenode.rpc-bind-host</name>
+        <value>0.0.0.0</value>
+    </property>
+    
+    <property>
+        <name>dfs.namenode.servicerpc-bind-host</name>
+        <value>0.0.0.0</value>
+    </property>
+    
+    <property>
+        <name>dfs.namenode.http-bind-host</name>
+        <value>0.0.0.0</value>
+    </property>
+    
+    <!-- Datanode settings -->
+    <property>
+        <name>dfs.datanode.address</name>
+        <value>0.0.0.0:9866</value>
+    </property>
+    
+    <property>
+        <name>dfs.datanode.http.address</name>
+        <value>0.0.0.0:9864</value>
+    </property>
+    
+    <property>
+        <name>dfs.datanode.ipc.address</name>
+        <value>0.0.0.0:9867</value>
+    </property>
+    
+    <!-- Client settings for failure handling -->
+    <property>
+        <name>dfs.client.block.write.replace-datanode-on-failure.policy</name>
+        <value>NEVER</value>
+        <description>Never replace datanode on failure for single-node setup</description>
+    </property>
+    
+    <!-- Heartbeat and lease settings -->
+    <property>
+        <name>dfs.namenode.heartbeat.recheck-interval</name>
+        <value>300000</value>
+    </property>
+    
+    <property>
+        <name>dfs.heartbeat.interval</name>
+        <value>3</value>
+    </property>
+</configuration>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+    <!-- HDFS Configuration for UNSW-NB15 Analytics -->
+    
+    <!-- Default file system -->
+    <property>
+        <name>fs.defaultFS</name>
+        <value>hdfs://namenode:8020</value>
+        <description>The default file system URI</description>
+    </property>
+    
+    <!-- Temporary directory -->
+    <property>
+        <name>hadoop.tmp.dir</name>
+        <value>/tmp/hadoop</value>
+        <description>Temporary directory for Hadoop</description>
+    </property>
+    
+    <!-- User group mapping -->
+    <property>
+        <name>hadoop.security.group.mapping</name>
+        <value>org.apache.hadoop.security.JniBasedUnixGroupsMappingWithFallback</value>
+    </property>
+    
+    <!-- Disable security for development -->
+    <property>
+        <name>hadoop.security.authentication</name>
+        <value>simple</value>
+    </property>
+    
+    <!-- Proxyuser settings for Hive -->
+    <property>
+        <name>hadoop.proxyuser.hive.hosts</name>
+        <value>*</value>
+    </property>
+    
+    <property>
+        <name>hadoop.proxyuser.hive.groups</name>
+        <value>*</value>
+    </property>
+    
+    <!-- Proxyuser settings for root -->
+    <property>
+        <name>hadoop.proxyuser.root.hosts</name>
+        <value>*</value>
+    </property>
+    
+    <property>
+        <name>hadoop.proxyuser.root.groups</name>
+        <value>*</value>
+    </property>
+    
+    <!-- IO settings optimized for student laptops -->
+    <property>
+        <name>io.file.buffer.size</name>
+        <value>65536</value>
+        <description>Buffer size for file operations</description>
+    </property>
+    
+    <!-- Compression settings for better performance -->
+    <property>
+        <name>hadoop.rpc.socket.factory.class.default</name>
+        <value>org.apache.hadoop.net.StandardSocketFactory</value>
+    </property>
+</configuration>

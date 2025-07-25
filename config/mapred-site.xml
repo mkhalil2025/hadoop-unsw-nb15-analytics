@@ -1,0 +1,120 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+    <!-- MapReduce Configuration for UNSW-NB15 Analytics -->
+    
+    <!-- Framework name -->
+    <property>
+        <name>mapreduce.framework.name</name>
+        <value>yarn</value>
+        <description>Use YARN as the MapReduce framework</description>
+    </property>
+    
+    <!-- JobHistory Server -->
+    <property>
+        <name>mapreduce.jobhistory.address</name>
+        <value>resourcemanager:10020</value>
+    </property>
+    
+    <property>
+        <name>mapreduce.jobhistory.webapp.address</name>
+        <value>resourcemanager:19888</value>
+    </property>
+    
+    <!-- Memory settings optimized for student laptops -->
+    <property>
+        <name>mapreduce.map.memory.mb</name>
+        <value>1024</value>
+        <description>Memory allocation for map tasks</description>
+    </property>
+    
+    <property>
+        <name>mapreduce.reduce.memory.mb</name>
+        <value>2048</value>
+        <description>Memory allocation for reduce tasks</description>
+    </property>
+    
+    <!-- JVM heap settings -->
+    <property>
+        <name>mapreduce.map.java.opts</name>
+        <value>-Xmx768m</value>
+        <description>JVM options for map tasks</description>
+    </property>
+    
+    <property>
+        <name>mapreduce.reduce.java.opts</name>
+        <value>-Xmx1536m</value>
+        <description>JVM options for reduce tasks</description>
+    </property>
+    
+    <!-- Task settings -->
+    <property>
+        <name>mapreduce.map.cpu.vcores</name>
+        <value>1</value>
+    </property>
+    
+    <property>
+        <name>mapreduce.reduce.cpu.vcores</name>
+        <value>1</value>
+    </property>
+    
+    <!-- Output compression for better performance -->
+    <property>
+        <name>mapreduce.output.fileoutputformat.compress</name>
+        <value>true</value>
+    </property>
+    
+    <property>
+        <name>mapreduce.output.fileoutputformat.compress.codec</name>
+        <value>org.apache.hadoop.io.compress.GzipCodec</value>
+    </property>
+    
+    <!-- Intermediate compression -->
+    <property>
+        <name>mapreduce.map.output.compress</name>
+        <value>true</value>
+    </property>
+    
+    <property>
+        <name>mapreduce.map.output.compress.codec</name>
+        <value>org.apache.hadoop.io.compress.SnappyCodec</value>
+    </property>
+    
+    <!-- Shuffle settings -->
+    <property>
+        <name>mapreduce.task.io.sort.mb</name>
+        <value>256</value>
+        <description>Memory for sorting map output</description>
+    </property>
+    
+    <property>
+        <name>mapreduce.task.io.sort.factor</name>
+        <value>10</value>
+    </property>
+    
+    <!-- Speculative execution (disabled for consistent results) -->
+    <property>
+        <name>mapreduce.map.speculative</name>
+        <value>false</value>
+    </property>
+    
+    <property>
+        <name>mapreduce.reduce.speculative</name>
+        <value>false</value>
+    </property>
+    
+    <!-- Application classpath -->
+    <property>
+        <name>mapreduce.application.classpath</name>
+        <value>
+            /opt/hadoop/share/hadoop/mapreduce/*,
+            /opt/hadoop/share/hadoop/mapreduce/lib/*,
+            /opt/hadoop/share/hadoop/common/*,
+            /opt/hadoop/share/hadoop/common/lib/*,
+            /opt/hadoop/share/hadoop/yarn/*,
+            /opt/hadoop/share/hadoop/yarn/lib/*,
+            /opt/hadoop/share/hadoop/hdfs/*,
+            /opt/hadoop/share/hadoop/hdfs/lib/*
+        </value>
+    </property>
+</configuration>
