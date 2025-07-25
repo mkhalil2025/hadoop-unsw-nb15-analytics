@@ -1,0 +1,106 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+    <!-- YARN Configuration for UNSW-NB15 Analytics -->
+    
+    <!-- ResourceManager hostname -->
+    <property>
+        <name>yarn.resourcemanager.hostname</name>
+        <value>resourcemanager</value>
+    </property>
+    
+    <!-- ResourceManager bind addresses -->
+    <property>
+        <name>yarn.resourcemanager.bind-host</name>
+        <value>0.0.0.0</value>
+    </property>
+    
+    <!-- NodeManager auxiliary services -->
+    <property>
+        <name>yarn.nodemanager.aux-services</name>
+        <value>mapreduce_shuffle</value>
+    </property>
+    
+    <!-- Resource allocation optimized for student laptops -->
+    <property>
+        <name>yarn.nodemanager.resource.memory-mb</name>
+        <value>4096</value>
+        <description>4GB memory allocation for student laptops</description>
+    </property>
+    
+    <property>
+        <name>yarn.scheduler.maximum-allocation-mb</name>
+        <value>4096</value>
+        <description>Maximum memory allocation</description>
+    </property>
+    
+    <property>
+        <name>yarn.scheduler.minimum-allocation-mb</name>
+        <value>512</value>
+        <description>Minimum memory allocation</description>
+    </property>
+    
+    <property>
+        <name>yarn.nodemanager.resource.cpu-vcores</name>
+        <value>2</value>
+        <description>CPU cores allocation</description>
+    </property>
+    
+    <!-- NodeManager settings -->
+    <property>
+        <name>yarn.nodemanager.bind-host</name>
+        <value>0.0.0.0</value>
+    </property>
+    
+    <property>
+        <name>yarn.nodemanager.vmem-check-enabled</name>
+        <value>false</value>
+        <description>Disable virtual memory checking for student environment</description>
+    </property>
+    
+    <property>
+        <name>yarn.nodemanager.pmem-check-enabled</name>
+        <value>false</value>
+        <description>Disable physical memory checking for flexibility</description>
+    </property>
+    
+    <!-- Application settings -->
+    <property>
+        <name>yarn.application.classpath</name>
+        <value>
+            /opt/hadoop/etc/hadoop,
+            /opt/hadoop/share/hadoop/common/*,
+            /opt/hadoop/share/hadoop/common/lib/*,
+            /opt/hadoop/share/hadoop/hdfs/*,
+            /opt/hadoop/share/hadoop/hdfs/lib/*,
+            /opt/hadoop/share/hadoop/mapreduce/*,
+            /opt/hadoop/share/hadoop/mapreduce/lib/*,
+            /opt/hadoop/share/hadoop/yarn/*,
+            /opt/hadoop/share/hadoop/yarn/lib/*
+        </value>
+    </property>
+    
+    <!-- Scheduler settings -->
+    <property>
+        <name>yarn.resourcemanager.scheduler.class</name>
+        <value>org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler</value>
+    </property>
+    
+    <!-- Log aggregation for debugging -->
+    <property>
+        <name>yarn.log-aggregation-enable</name>
+        <value>true</value>
+    </property>
+    
+    <property>
+        <name>yarn.log.server.url</name>
+        <value>http://resourcemanager:19888/jobhistory/logs</value>
+    </property>
+    
+    <!-- Timeline service for application history -->
+    <property>
+        <name>yarn.timeline-service.enabled</name>
+        <value>false</value>
+        <description>Disabled to reduce resource usage</description>
+    </property>
+</configuration>

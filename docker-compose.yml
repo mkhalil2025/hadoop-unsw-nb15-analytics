@@ -1,0 +1,221 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Metastore for Hive
+  postgres:
+    image: postgres:13
+    container_name: postgres-metastore
+    environment:
+      POSTGRES_DB: metastore
+      POSTGRES_USER: hive
+      POSTGRES_PASSWORD: hive123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - hadoop-network
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hive"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Hadoop Namenode
+  namenode:
+    image: apache/hadoop:3.3.4
+    container_name: namenode
+    hostname: namenode
+    environment:
+      CLUSTER_NAME: hadoop-cluster
+    env_file:
+      - .env
+    volumes:
+      - namenode_data:/opt/hadoop/logs
+      - ./config:/opt/hadoop/etc/hadoop
+      - ./data:/opt/hadoop/data
+    ports:
+      - "9870:9870"  # Namenode Web UI
+      - "8020:8020"  # Namenode RPC
+    networks:
+      - hadoop-network
+    command: >
+      bash -c "
+        hdfs namenode -format -force && 
+        hdfs namenode
+      "
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9870 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Hadoop Datanode
+  datanode:
+    image: apache/hadoop:3.3.4
+    container_name: datanode
+    hostname: datanode
+    environment:
+      CLUSTER_NAME: hadoop-cluster
+    env_file:
+      - .env
+    volumes:
+      - datanode_data:/opt/hadoop/logs
+      - ./config:/opt/hadoop/etc/hadoop
+      - ./data:/opt/hadoop/data
+    ports:
+      - "9864:9864"  # Datanode Web UI
+    networks:
+      - hadoop-network
+    depends_on:
+      namenode:
+        condition: service_healthy
+    command: >
+      bash -c "
+        sleep 30 &&
+        hdfs datanode
+      "
+
+  # YARN ResourceManager
+  resourcemanager:
+    image: apache/hadoop:3.3.4
+    container_name: resourcemanager
+    hostname: resourcemanager
+    environment:
+      CLUSTER_NAME: hadoop-cluster
+    env_file:
+      - .env
+    volumes:
+      - ./config:/opt/hadoop/etc/hadoop
+    ports:
+      - "8088:8088"  # ResourceManager Web UI
+      - "8030:8030"  # ResourceManager Scheduler
+      - "8031:8031"  # ResourceManager Tracker
+      - "8032:8032"  # ResourceManager Applications
+      - "8033:8033"  # ResourceManager Admin
+    networks:
+      - hadoop-network
+    depends_on:
+      namenode:
+        condition: service_healthy
+    command: >
+      bash -c "
+        sleep 45 &&
+        yarn resourcemanager
+      "
+
+  # YARN NodeManager
+  nodemanager:
+    image: apache/hadoop:3.3.4
+    container_name: nodemanager
+    hostname: nodemanager
+    environment:
+      CLUSTER_NAME: hadoop-cluster
+    env_file:
+      - .env
+    volumes:
+      - ./config:/opt/hadoop/etc/hadoop
+      - nodemanager_data:/opt/hadoop/logs
+    ports:
+      - "8042:8042"  # NodeManager Web UI
+    networks:
+      - hadoop-network
+    depends_on:
+      - resourcemanager
+    command: >
+      bash -c "
+        sleep 60 &&
+        yarn nodemanager
+      "
+
+  # Hive Server2
+  hiveserver2:
+    image: apache/hive:3.1.3
+    container_name: hiveserver2
+    hostname: hiveserver2
+    environment:
+      SERVICE_NAME: hiveserver2
+      HIVE_METASTORE_URI: thrift://hivemetastore:9083
+    env_file:
+      - .env
+    volumes:
+      - ./hive:/opt/hive/scripts
+      - ./config:/opt/hadoop/etc/hadoop
+      - ./output:/opt/hive/output
+    ports:
+      - "10000:10000"  # HiveServer2 Thrift
+      - "10002:10002"  # HiveServer2 Web UI
+    networks:
+      - hadoop-network
+    depends_on:
+      - hivemetastore
+      - namenode
+    command: >
+      bash -c "
+        sleep 120 &&
+        hive --service hiveserver2
+      "
+
+  # Hive Metastore
+  hivemetastore:
+    image: apache/hive:3.1.3
+    container_name: hivemetastore
+    hostname: hivemetastore
+    environment:
+      SERVICE_NAME: metastore
+      HIVE_METASTORE_DRIVER: org.postgresql.Driver
+      HIVE_METASTORE_JDBC_URL: jdbc:postgresql://postgres:5432/metastore
+      HIVE_METASTORE_JDBC_USER: hive
+      HIVE_METASTORE_JDBC_PASSWORD: hive123
+    env_file:
+      - .env
+    volumes:
+      - ./config:/opt/hadoop/etc/hadoop
+    ports:
+      - "9083:9083"  # Metastore Thrift
+    networks:
+      - hadoop-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: >
+      bash -c "
+        sleep 90 &&
+        schematool -dbType postgres -initSchema &&
+        hive --service metastore
+      "
+
+  # Jupyter Notebook for Python Analytics
+  jupyter:
+    image: jupyter/pyspark-notebook:latest
+    container_name: jupyter-analytics
+    hostname: jupyter
+    environment:
+      JUPYTER_ENABLE_LAB: "yes"
+      GRANT_SUDO: "yes"
+    user: root
+    volumes:
+      - ./notebooks:/home/jovyan/work
+      - ./python:/home/jovyan/python
+      - ./data:/home/jovyan/data
+      - ./output:/home/jovyan/output
+    ports:
+      - "8888:8888"  # Jupyter Lab
+    networks:
+      - hadoop-network
+    command: >
+      bash -c "
+        pip install --upgrade pip &&
+        pip install pyhive thrift sasl thrift_sasl hdfs3 matplotlib seaborn scikit-learn pandas numpy plotly &&
+        start-notebook.sh --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.allow_root=True
+      "
+
+volumes:
+  namenode_data:
+  datanode_data:
+  nodemanager_data:
+  postgres_data:
+
+networks:
+  hadoop-network:
+    driver: bridge
