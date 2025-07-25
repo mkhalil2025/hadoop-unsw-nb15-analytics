@@ -38,8 +38,22 @@ This project provides a **complete, containerized Hadoop-based analytics environ
 git clone https://github.com/mkhalil2025/hadoop-unsw-nb15-analytics.git
 cd hadoop-unsw-nb15-analytics
 
+# Test the environment (optional)
+./test_environment.sh
+
 # Run automated setup (takes 5-10 minutes)
 ./scripts/setup_environment.sh
+```
+
+### Download and Upload Dataset
+```bash
+# Interactive data download and upload to HDFS
+./download_data.sh
+
+# Or use specific options:
+./download_data.sh interactive  # Full interactive workflow
+./download_data.sh sample      # Generate sample data only
+./download_data.sh upload      # Upload existing files to HDFS
 ```
 
 ### Access the Environment
@@ -95,11 +109,19 @@ If the original dataset is unavailable, the system automatically generates reali
 │   Hadoop Core   │   Hive Stack    │    Analytics Layer      │
 ├─────────────────┼─────────────────┼─────────────────────────┤
 │ • NameNode      │ • HiveServer2   │ • Jupyter Lab           │
-│ • DataNode      │ • Metastore     │ • Python Libraries      │
-│ • ResourceMgr   │ • PostgreSQL    │ • Visualization Tools   │
-│ • NodeManager   │                 │ • ML Frameworks         │
+│ • DataNode      │ • Metastore     │ • PySpark + ML libs     │
+│ • ResourceMgr   │ • PostgreSQL    │ • Advanced ML packages  │
+│ • NodeManager   │                 │ • SHAP, LIME, XGBoost   │
 └─────────────────┴─────────────────┴─────────────────────────┘
 ```
+
+### Technology Stack
+- **Big Data:** Hadoop 3.2.1 (bde2020 stable images)
+- **SQL Engine:** Apache Hive 2.3.2 with PostgreSQL metastore
+- **Analytics:** Jupyter Lab with PySpark integration
+- **ML Libraries:** Scikit-learn, XGBoost, LightGBM, TensorFlow, PyTorch
+- **Interpretation:** SHAP, LIME for model explainability
+- **Orchestration:** Docker Compose with health checks
 
 ### Memory Optimization
 Configured for student laptops with intelligent memory allocation:
@@ -160,9 +182,12 @@ Configured for student laptops with intelligent memory allocation:
 
 ```
 hadoop-unsw-nb15-analytics/
-├── 🐳 docker-compose.yml          # Complete service orchestration
+├── 🐳 docker-compose.yml          # Complete service orchestration (bde2020 images)
 ├── ⚙️ .env                        # Environment configuration
+├── ⚙️ hadoop.env                  # Hadoop-specific configuration
 ├── 📄 README.md                   # This file
+├── 🧪 test_environment.sh         # Environment validation script
+├── 📁 download_data.sh            # Interactive dataset download & upload
 │
 ├── 🔧 config/                     # Hadoop configuration files
 │   ├── core-site.xml              # Core Hadoop settings
@@ -176,14 +201,15 @@ hadoop-unsw-nb15-analytics/
 │
 ├── 📓 notebooks/                  # Jupyter notebooks
 │   ├── data_exploration.ipynb     # Complete data analysis
-│   └── [custom notebooks]        # Student/researcher additions
+│   ├── machine_learning.ipynb     # ML model development
+│   └── data_processing_pipeline.ipynb # End-to-end ETL & ML pipeline
 │
 ├── 🐍 python/                     # Python analytics modules  
 │   └── visualizations.py         # Automated chart generation
 │
 ├── 🤖 scripts/                    # Automation scripts
 │   ├── setup_environment.sh      # One-command environment setup
-│   └── load_data.sh              # Automated data loading
+│   └── load_data.sh              # Automated data loading (Hive integration)
 │
 ├── 📊 data/                       # Dataset storage
 │   ├── README.md                  # Data loading instructions
@@ -192,6 +218,7 @@ hadoop-unsw-nb15-analytics/
 ├── 📈 output/                     # Generated results
 │   ├── logs/                     # System and application logs
 │   ├── results/                  # Query results and analysis
+│   ├── models/                   # Trained ML models
 │   └── visualizations/           # Generated charts and dashboards
 │
 ├── 📚 docs/                       # Comprehensive documentation
@@ -310,9 +337,15 @@ HADOOP_SECURITY_AUTHENTICATION=simple
 ./scripts/setup_environment.sh clean    # Remove everything
 
 # Data Management  
-./scripts/load_data.sh                  # Load sample data
-./scripts/load_data.sh download         # Download real dataset
+./download_data.sh                      # Interactive data management
+./download_data.sh upload               # Upload existing files to HDFS
+./download_data.sh sample               # Generate sample data
+./download_data.sh verify               # Validate HDFS uploads
+./scripts/load_data.sh                  # Load data into Hive tables
 ./scripts/load_data.sh validate         # Validate data quality
+
+# Environment Testing
+./test_environment.sh                   # Comprehensive environment validation
 
 # Service Access
 docker exec -it hiveserver2 beeline -u 'jdbc:hive2://localhost:10000'
