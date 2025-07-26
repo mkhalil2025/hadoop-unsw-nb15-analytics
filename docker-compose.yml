@@ -158,10 +158,10 @@ services:
     container_name: hivemetastore
     hostname: hivemetastore
     environment:
-      SERVICE_PRECONDITION: "namenode:9870 datanode:9864 postgres:5432"
       HADOOP_HOME: "/opt/hadoop-2.7.4"
       HADOOP_PREFIX: "/opt/hadoop-2.7.4"
       HADOOP_CONF_DIR: "/opt/hadoop-2.7.4/etc/hadoop"
+      CORE_CONF_fs_defaultFS: "hdfs://namenode:8020"
       HIVE_CORE_CONF_javax_jdo_option_ConnectionURL: "jdbc:postgresql://postgres:5432/metastore"
       HIVE_CORE_CONF_javax_jdo_option_ConnectionDriverName: "org.postgresql.Driver"
       HIVE_CORE_CONF_javax_jdo_option_ConnectionUserName: "hive"
@@ -169,8 +169,15 @@ services:
       HIVE_CORE_CONF_datanucleus_autoCreateSchema: "true"
       HIVE_CORE_CONF_datanucleus_fixedDatastore: "false"
       HIVE_CORE_CONF_datanucleus_schema_autoCreateAll: "true"
+      HIVE_CORE_CONF_datanucleus_schema_autoCreateDatabase: "true"
+      HIVE_CORE_CONF_datanucleus_schema_autoCreateTables: "true"
+      HIVE_CORE_CONF_datanucleus_schema_autoCreateColumns: "true"
+      HIVE_CORE_CONF_datanucleus_identifier_case: "MIXED"
+      HIVE_CORE_CONF_datanucleus_metadata_allowXML: "true"
+      HIVE_CORE_CONF_datanucleus_rdbms_useLegacyNativeValueStrategy: "true"
+      HIVE_CORE_CONF_datanucleus_rdbms_initializeColumnInfo: "NONE"
       HIVE_SITE_CONF_hive_metastore_schema_verification: "false"
-      HIVE_SITE_CONF_hive_metastore_schema_verification_record_version: "true"
+      HIVE_SITE_CONF_hive_metastore_schema_verification_record_version: "false"
     volumes:
       - ./scripts:/opt/scripts
     ports:
