@@ -491,6 +491,123 @@ We welcome contributions to improve this educational platform:
 
 ---
 
+## 🔧 Troubleshooting
+
+### Common Issues & Quick Fixes
+
+#### Issue: Hive Metastore Constantly Restarting
+**Error**: `MetaException: Version information not found in metastore`
+
+**Quick Fix**:
+```bash
+# One-command fix for most metastore issues
+./quick_fix_hive.sh
+
+# Or comprehensive fix with detailed logs
+./scripts/fix_hive_metastore.sh
+```
+
+**Manual Fix**:
+```bash
+# Stop Hive services, reinitialize schema, restart
+docker-compose stop hiveserver2 hivemetastore
+docker exec postgres-metastore psql -U hive -d postgres -c "DROP DATABASE IF EXISTS metastore; CREATE DATABASE metastore;"
+./scripts/fix_hive_metastore.sh init-schema
+docker-compose up -d hivemetastore hiveserver2
+```
+
+#### Issue: Services Won't Start / Port Conflicts
+```bash
+# Check what's using ports
+sudo lsof -i :5432 -i :8888 -i :9870 -i :10000
+
+# Stop conflicting services or change ports in docker-compose.yml
+```
+
+#### Issue: Out of Memory Errors
+```bash
+# For 8GB systems, reduce memory allocation in .env:
+YARN_NODEMANAGER_RESOURCE_MEMORY_MB=3072
+YARN_SCHEDULER_MAXIMUM_ALLOCATION_MB=3072
+
+# Restart services
+docker-compose restart
+```
+
+#### Issue: Windows/WSL Compatibility
+```bash
+# Use WSL 2 and ensure Docker Desktop integration
+# Set environment variables if needed:
+export DOCKER_BUILDKIT=0
+export COMPOSE_DOCKER_CLI_BUILD=0
+
+# Run from WSL terminal, access web UIs from Windows browser
+```
+
+#### Issue: Data Loading Fails
+```bash
+# Check HDFS status and recreate directories
+docker exec namenode hdfs dfs -ls /user/hive/warehouse
+./scripts/load_data.sh hdfs  # Recreate HDFS structure
+```
+
+### Validation Commands
+
+Test your setup with these commands:
+
+```bash
+# Check all container status
+docker ps
+
+# Test Hadoop
+curl http://localhost:9870
+
+# Test Hive connectivity  
+docker exec hiveserver2 beeline -u "jdbc:hive2://localhost:10000" -e "SHOW DATABASES;"
+
+# Check metastore schema
+docker exec postgres-metastore psql -U hive -d metastore -c "SELECT * FROM VERSION;"
+
+# Test data loading
+docker exec namenode hdfs dfs -ls /user/data/
+```
+
+### Log Locations
+
+Check these logs for detailed error information:
+
+```bash
+# Service-specific logs
+docker logs hivemetastore
+docker logs hiveserver2  
+docker logs postgres-metastore
+
+# All logs at once
+docker-compose logs
+
+# Fix script logs
+cat output/metastore_fix.log
+```
+
+### Complete Environment Reset
+
+If all else fails, perform a complete reset:
+
+```bash
+# WARNING: This removes all data and containers
+docker-compose down -v
+docker system prune -f
+./scripts/fix_hive_metastore.sh
+./scripts/load_data.sh
+```
+
+### Additional Resources
+- **Detailed Troubleshooting**: See `HIVE_METASTORE_TROUBLESHOOTING.md`
+- **Environment Logs**: Check `output/` directory
+- **Configuration Files**: Review `config/` directory
+
+---
+
 ## 📞 Support & Community
 
 ### Getting Help
