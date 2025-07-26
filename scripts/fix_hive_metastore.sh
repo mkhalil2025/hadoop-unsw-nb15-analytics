@@ -11,11 +11,23 @@
 
 set -e  # Exit on any error
 
+# Detect and use the correct Docker Compose command
+get_compose_cmd() {
+    if docker compose version &> /dev/null; then
+        echo "docker compose"
+    elif command -v docker-compose &> /dev/null; then
+        echo "docker-compose"
+    else
+        error_exit "Docker Compose is not available. Please install Docker Compose first."
+    fi
+}
+
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 LOG_FILE="$PROJECT_ROOT/output/metastore_fix.log"
 BACKUP_DIR="$PROJECT_ROOT/output/backups/$(date +%Y%m%d_%H%M%S)"
+COMPOSE_CMD=$(get_compose_cmd)
 
 # Colors for output
 RED='\033[0;31m'
@@ -94,8 +106,8 @@ check_requirements() {
         error_exit "Docker is not installed. Please install Docker first."
     fi
     
-    # Check Docker Compose
-    if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null; then
+    # Check Docker Compose (prefer modern docker compose over docker-compose)
+    if ! docker compose version &> /dev/null && ! command -v docker-compose &> /dev/null; then
         error_exit "Docker Compose is not installed. Please install Docker Compose first."
     fi
     
@@ -121,10 +133,10 @@ stop_hive_services() {
     
     # Stop containers gracefully
     info "Stopping HiveServer2..."
-    docker-compose stop hiveserver2 2>/dev/null || warning "HiveServer2 was not running"
+    $COMPOSE_CMD stop hiveserver2 2>/dev/null || warning "HiveServer2 was not running"
     
     info "Stopping Hive Metastore..."
-    docker-compose stop hivemetastore 2>/dev/null || warning "Hive Metastore was not running"
+    $COMPOSE_CMD stop hivemetastore 2>/dev/null || warning "Hive Metastore was not running"
     
     # Wait a moment for graceful shutdown
     sleep 5
@@ -144,7 +156,7 @@ ensure_postgres_ready() {
     
     # Start PostgreSQL if not running
     info "Starting PostgreSQL metastore..."
-    docker-compose up -d postgres
+    $COMPOSE_CMD up -d postgres
     
     # Wait for PostgreSQL to be ready
     info "Waiting for PostgreSQL to be ready..."
@@ -209,7 +221,7 @@ initialize_hive_schema() {
     
     # Ensure namenode and datanode are running for schema initialization
     info "Starting Hadoop services for schema initialization..."
-    docker-compose up -d namenode datanode
+    $COMPOSE_CMD up -d namenode datanode
     
     # Wait for namenode to be ready
     info "Waiting for Hadoop namenode..."
@@ -230,14 +242,26 @@ initialize_hive_schema() {
     info "Running Hive schematool to initialize schema..."
     
     # Use the same Hive image to run schematool
+    info "Testing PostgreSQL connectivity first..."
+    docker run --rm \
+        --network "$(basename "$PROJECT_ROOT")_hadoop-network" \
+        postgres:13 \
+        psql -h postgres -U hive -d metastore -c "SELECT 1;" || error_exit "Cannot connect to PostgreSQL from container"
+    
+    info "Running schematool to initialize schema..."
     docker run --rm \
         --network "$(basename "$PROJECT_ROOT")_hadoop-network" \
         -e HIVE_CORE_CONF_javax_jdo_option_ConnectionURL="jdbc:postgresql://postgres:5432/metastore" \
         -e HIVE_CORE_CONF_javax_jdo_option_ConnectionDriverName="org.postgresql.Driver" \
         -e HIVE_CORE_CONF_javax_jdo_option_ConnectionUserName="hive" \
         -e HIVE_CORE_CONF_javax_jdo_option_ConnectionPassword="hive123" \
+        -e HIVE_CORE_CONF_datanucleus_autoCreateSchema="false" \
+        -e HIVE_SITE_CONF_javax_jdo_option_ConnectionURL="jdbc:postgresql://postgres:5432/metastore" \
+        -e HIVE_SITE_CONF_javax_jdo_option_ConnectionDriverName="org.postgresql.Driver" \
+        -e HIVE_SITE_CONF_javax_jdo_option_ConnectionUserName="hive" \
+        -e HIVE_SITE_CONF_javax_jdo_option_ConnectionPassword="hive123" \
         bde2020/hive:2.3.2-postgresql-metastore \
-        /opt/hive/bin/schematool -dbType postgres -initSchema
+        /opt/hive/bin/schematool -dbType postgres -initSchema -verbose
     
     success "Hive metastore schema initialized successfully"
 }
@@ -279,7 +303,7 @@ start_services_ordered() {
     
     # Start core Hadoop services first
     info "Starting Hadoop core services..."
-    docker-compose up -d namenode datanode
+    $COMPOSE_CMD up -d namenode datanode
     
     # Wait for namenode
     info "Waiting for namenode to be ready..."
@@ -294,11 +318,11 @@ start_services_ordered() {
     
     # Start YARN services
     info "Starting YARN services..."
-    docker-compose up -d resourcemanager nodemanager
+    $COMPOSE_CMD up -d resourcemanager nodemanager
     
     # Start Hive Metastore
     info "Starting Hive Metastore..."
-    docker-compose up -d hivemetastore
+    $COMPOSE_CMD up -d hivemetastore
     
     # Wait for metastore to be ready
     info "Waiting for Hive Metastore to be ready..."
@@ -318,7 +342,7 @@ start_services_ordered() {
     
     # Start HiveServer2
     info "Starting HiveServer2..."
-    docker-compose up -d hiveserver2
+    $COMPOSE_CMD up -d hiveserver2
     
     success "All services started in correct order"
 }
@@ -510,13 +534,13 @@ TROUBLESHOOTING:
    docker-compose restart [container_name]
 
 3. Full environment restart:
-   docker-compose down && docker-compose up -d
+   $COMPOSE_CMD down && $COMPOSE_CMD up -d
 
 4. Re-run this fix script:
    ./scripts/fix_hive_metastore.sh
 
 5. Clean restart (removes all data):
-   docker-compose down -v && ./scripts/fix_hive_metastore.sh
+   $COMPOSE_CMD down -v && ./scripts/fix_hive_metastore.sh
 
 =================================================================
 NEXT STEPS:

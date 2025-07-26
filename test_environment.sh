@@ -38,8 +38,15 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting environment tests" > "$LOG_FILE"
 # Test 1: Docker Compose Configuration
 echo -e "\n${YELLOW}Test 1: Docker Compose Configuration${NC}"
 cd "$SCRIPT_DIR"
-docker compose config --quiet
-test_result $? "Docker Compose configuration is valid"
+if docker compose version >/dev/null 2>&1; then
+    docker compose config --quiet
+    test_result $? "Docker Compose configuration is valid"
+elif command -v docker-compose >/dev/null 2>&1; then
+    docker-compose config --quiet
+    test_result $? "Docker Compose configuration is valid"
+else
+    test_result 1 "Docker Compose is not available"
+fi
 
 # Test 2: Environment Files
 echo -e "\n${YELLOW}Test 2: Environment Files${NC}"
