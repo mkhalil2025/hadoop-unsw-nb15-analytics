@@ -1,4 +1,5 @@
 -- UNSW-NB15 Cybersecurity Dataset Schema
+-- Enhanced for loading 3 specific CSV files: UNSW-NB15.csv, UNSW-NB15_features.csv, UNSW-NB15_LIST_EVENTS.csv
 -- Optimized for Big Data Analytics with Hive
 -- Dataset contains 49 features for network intrusion detection
 
@@ -9,15 +10,19 @@ LOCATION '/user/hive/warehouse/unsw_nb15.db';
 
 USE unsw_nb15;
 
--- Main table for raw UNSW-NB15 data
--- Partitioned by attack category for better query performance
-CREATE TABLE IF NOT EXISTS network_flows (
+-- ==================================================================
+-- TABLE 1: Main UNSW-NB15 dataset (from UNSW-NB15.csv)
+-- ==================================================================
+
+-- Main table for UNSW-NB15 network flow data
+CREATE TABLE IF NOT EXISTS unsw_nb15_main (
     -- Flow identification
     srcip STRING COMMENT 'Source IP address',
     sport INT COMMENT 'Source port number',
     dstip STRING COMMENT 'Destination IP address', 
     dsport INT COMMENT 'Destination port number',
     proto STRING COMMENT 'Transaction protocol',
+    state STRING COMMENT 'Connection state',
     
     -- Flow statistics
     dur DOUBLE COMMENT 'Record total duration',
@@ -59,10 +64,10 @@ CREATE TABLE IF NOT EXISTS network_flows (
     ackdat DOUBLE COMMENT 'TCP connection setup time',
     
     -- Connection state features
-    is_sm_ips_ports BOOLEAN COMMENT 'If source equals to destination IP addresses and port numbers are equal',
+    is_sm_ips_ports INT COMMENT 'If source equals to destination IP addresses and port numbers are equal',
     ct_state_ttl INT COMMENT 'No. for each state according to specific range of values for source/destination time to live',
     ct_flw_http_mthd INT COMMENT 'No. of flows that has methods such as Get and Post in http service',
-    is_ftp_login BOOLEAN COMMENT 'If the ftp session is accessed by user and password then 1 else 0',
+    is_ftp_login INT COMMENT 'If the ftp session is accessed by user and password then 1 else 0',
     ct_ftp_cmd INT COMMENT 'No of flows that has a command in ftp session',
     ct_srv_src INT COMMENT 'No. of connections that contain the same service and source address in 100 connections according to the last time',
     ct_srv_dst INT COMMENT 'No. of connections that contain the same service and destination address in 100 connections according to the last time',
@@ -73,83 +78,66 @@ CREATE TABLE IF NOT EXISTS network_flows (
     ct_dst_src_ltm INT COMMENT 'No of connections of the same source and the destination address in in 100 connections according to the last time',
     
     -- Binary classification label
-    label BOOLEAN COMMENT 'Binary label: 0 for normal, 1 for attack',
+    label INT COMMENT 'Binary label: 0 for normal, 1 for attack',
     
     -- Multi-class classification label  
     attack_cat STRING COMMENT 'The name of each attack category'
-)
-PARTITIONED BY (
-    year INT COMMENT 'Year of the record',
-    month INT COMMENT 'Month of the record'
-)
-STORED AS PARQUET
-LOCATION '/user/hive/warehouse/unsw_nb15.db/network_flows'
-TBLPROPERTIES (
-    'parquet.compression'='SNAPPY',
-    'comment'='Main table for UNSW-NB15 network flow records partitioned by year and month'
-);
-
--- Create external table for loading raw CSV data
-CREATE TABLE IF NOT EXISTS network_flows_raw (
-    srcip STRING,
-    sport INT,
-    dstip STRING,
-    dsport INT,
-    proto STRING,
-    state STRING,
-    dur DOUBLE,
-    sbytes BIGINT,
-    dbytes BIGINT,
-    sttl INT,
-    dttl INT,
-    sloss INT,
-    dloss INT,
-    service STRING,
-    sload DOUBLE,
-    dload DOUBLE,
-    spkts INT,
-    dpkts INT,
-    swin INT,
-    dwin INT,
-    stcpb BIGINT,
-    dtcpb BIGINT,
-    smeansz DOUBLE,
-    dmeansz DOUBLE,
-    trans_depth INT,
-    res_bdy_len INT,
-    sjit DOUBLE,
-    djit DOUBLE,
-    stime TIMESTAMP,
-    ltime TIMESTAMP,
-    sintpkt DOUBLE,
-    dintpkt DOUBLE,
-    tcprtt DOUBLE,
-    synack DOUBLE,
-    ackdat DOUBLE,
-    is_sm_ips_ports BOOLEAN,
-    ct_state_ttl INT,
-    ct_flw_http_mthd INT,
-    is_ftp_login BOOLEAN,
-    ct_ftp_cmd INT,
-    ct_srv_src INT,
-    ct_srv_dst INT,
-    ct_dst_ltm INT,
-    ct_src_ltm INT,
-    ct_src_dport_ltm INT,
-    ct_dst_sport_ltm INT,
-    ct_dst_src_ltm INT,
-    label BOOLEAN,
-    attack_cat STRING
 )
 ROW FORMAT DELIMITED
 FIELDS TERMINATED BY ','
 LINES TERMINATED BY '\n'
 STORED AS TEXTFILE
-LOCATION '/user/hive/warehouse/unsw_nb15.db/network_flows_raw'
+LOCATION '/user/hive/warehouse/unsw_nb15.db/unsw_nb15_main'
 TBLPROPERTIES (
     'skip.header.line.count'='1',
-    'comment'='Raw CSV data loading table for UNSW-NB15 dataset'
+    'comment'='Main UNSW-NB15 network flow records from UNSW-NB15.csv'
 );
+
+-- ==================================================================
+-- TABLE 2: Feature descriptions (from UNSW-NB15_features.csv)
+-- ==================================================================
+
+-- Table for UNSW-NB15 feature descriptions and metadata
+CREATE TABLE IF NOT EXISTS unsw_nb15_features (
+    name STRING COMMENT 'Feature name',
+    type STRING COMMENT 'Feature data type (nominal, integer, float, binary, timestamp)',
+    description STRING COMMENT 'Detailed description of the feature'
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+LINES TERMINATED BY '\n'
+STORED AS TEXTFILE
+LOCATION '/user/hive/warehouse/unsw_nb15.db/unsw_nb15_features'
+TBLPROPERTIES (
+    'skip.header.line.count'='1',
+    'comment'='Feature descriptions and metadata from UNSW-NB15_features.csv'
+);
+
+-- ==================================================================
+-- TABLE 3: Attack event statistics (from UNSW-NB15_LIST_EVENTS.csv)
+-- ==================================================================
+
+-- Table for attack category event statistics
+CREATE TABLE IF NOT EXISTS unsw_nb15_events (
+    event_id INT COMMENT 'Unique event identifier',
+    event_type STRING COMMENT 'Type of network event',
+    attack_category STRING COMMENT 'Attack category name',
+    event_count BIGINT COMMENT 'Number of events in this category',
+    event_description STRING COMMENT 'Detailed description of the event type'
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+LINES TERMINATED BY '\n'
+STORED AS TEXTFILE
+LOCATION '/user/hive/warehouse/unsw_nb15.db/unsw_nb15_events'
+TBLPROPERTIES (
+    'skip.header.line.count'='1',
+    'comment'='Attack category event statistics from UNSW-NB15_LIST_EVENTS.csv'
+);
+
+-- ==================================================================
+-- OPTIONAL: Additional analysis tables (kept for advanced analytics)
+-- ==================================================================
 
 -- Summary table for attack statistics
 CREATE TABLE IF NOT EXISTS attack_summary (
@@ -170,79 +158,6 @@ TBLPROPERTIES (
     'parquet.compression'='SNAPPY',
     'comment'='Pre-aggregated attack statistics for dashboard queries'
 );
-
--- Geographic analysis table (if IP geolocation data available)
-CREATE TABLE IF NOT EXISTS geo_analysis (
-    country_code STRING COMMENT 'Country code',
-    region STRING COMMENT 'Geographic region',
-    attack_cat STRING COMMENT 'Attack category',
-    hour_of_day INT COMMENT 'Hour of the day (0-23)',
-    attack_count BIGINT COMMENT 'Number of attacks',
-    data_transferred BIGINT COMMENT 'Total bytes transferred',
-    analysis_date DATE COMMENT 'Date of analysis'
-)
-PARTITIONED BY (
-    analysis_year INT,
-    analysis_month INT
-)
-STORED AS PARQUET
-LOCATION '/user/hive/warehouse/unsw_nb15.db/geo_analysis'
-TBLPROPERTIES (
-    'parquet.compression'='SNAPPY',
-    'comment'='Geographic analysis of attack patterns'
-);
-
--- Anomaly detection results table
-CREATE TABLE IF NOT EXISTS anomaly_scores (
-    flow_id STRING COMMENT 'Unique flow identifier',
-    srcip STRING COMMENT 'Source IP',
-    dstip STRING COMMENT 'Destination IP',
-    proto STRING COMMENT 'Protocol',
-    service STRING COMMENT 'Service',
-    anomaly_score DOUBLE COMMENT 'Calculated anomaly score',
-    zscore_sbytes DOUBLE COMMENT 'Z-score for source bytes',
-    zscore_dbytes DOUBLE COMMENT 'Z-score for destination bytes',
-    zscore_duration DOUBLE COMMENT 'Z-score for duration',
-    is_anomaly BOOLEAN COMMENT 'True if flagged as anomaly',
-    detection_timestamp TIMESTAMP COMMENT 'When anomaly was detected'
-)
-STORED AS PARQUET
-LOCATION '/user/hive/warehouse/unsw_nb15.db/anomaly_scores'
-TBLPROPERTIES (
-    'parquet.compression'='SNAPPY',
-    'comment'='Results from anomaly detection algorithms'
-);
-
--- Create indexes for common query patterns
--- Note: Hive 3.x supports indexes via materialized views
-
--- Index for IP-based queries
-CREATE MATERIALIZED VIEW IF NOT EXISTS ip_index AS
-SELECT srcip, dstip, COUNT(*) as flow_count,
-       SUM(CAST(label AS INT)) as attack_count
-FROM network_flows
-GROUP BY srcip, dstip;
-
--- Index for time-based queries  
-CREATE MATERIALIZED VIEW IF NOT EXISTS time_index AS
-SELECT 
-    EXTRACT(HOUR FROM stime) as hour_of_day,
-    EXTRACT(DAY FROM stime) as day_of_month,
-    attack_cat,
-    COUNT(*) as flow_count
-FROM network_flows
-WHERE stime IS NOT NULL
-GROUP BY EXTRACT(HOUR FROM stime), EXTRACT(DAY FROM stime), attack_cat;
-
--- Index for protocol and service analysis
-CREATE MATERIALIZED VIEW IF NOT EXISTS protocol_service_index AS
-SELECT proto, service, attack_cat,
-       COUNT(*) as flow_count,
-       AVG(dur) as avg_duration,
-       SUM(sbytes + dbytes) as total_bytes
-FROM network_flows
-WHERE proto IS NOT NULL AND service IS NOT NULL
-GROUP BY proto, service, attack_cat;
 
 -- Print success message
 SELECT 'UNSW-NB15 database schema created successfully!' as message;
