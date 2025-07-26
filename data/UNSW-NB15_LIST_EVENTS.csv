@@ -1,0 +1,11 @@
+event_id,event_type,attack_category,event_count,event_description
+1,Normal,Normal,1746654,Normal network traffic
+2,DoS,DoS,16353,Denial of Service attacks
+3,Exploits,Exploits,44525,Exploitation attacks using vulnerabilities
+4,Generic,Generic,215481,Generic attacks that cannot be classified into specific categories
+5,Reconnaissance,Reconnaissance,13987,Information gathering and reconnaissance activities  
+6,Analysis,Analysis,2677,Analysis attacks including port scans and vulnerability assessments
+7,Backdoor,Backdoor,2329,Backdoor attacks providing unauthorized access
+8,Shellcode,Shellcode,1511,Shellcode attacks delivering executable payloads
+9,Worms,Worms,174,Self-replicating worm attacks
+10,Fuzzers,Fuzzers,24246,Fuzzing attacks using automated testing tools

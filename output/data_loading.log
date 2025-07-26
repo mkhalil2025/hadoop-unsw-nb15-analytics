@@ -1,0 +1,5 @@
+[0;34mINFO: Checking for required UNSW-NB15 dataset files...[0m
+[0;32mSUCCESS: All required UNSW-NB15 dataset files found in /home/runner/work/hadoop-unsw-nb15-analytics/hadoop-unsw-nb15-analytics/data[0m
+[0;34mINFO: UNSW-NB15.csv: 10 lines[0m
+[0;34mINFO: UNSW-NB15_features.csv: 49 lines[0m
+[0;34mINFO: UNSW-NB15_LIST_EVENTS.csv: 10 lines[0m

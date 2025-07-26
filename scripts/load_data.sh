@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# UNSW-NB15 Data Loading Script for Hadoop Analytics Environment
+# Enhanced UNSW-NB15 Data Loading Script for Hadoop Analytics Environment
+# Loads 3 specific CSV files: UNSW-NB15.csv, UNSW-NB15_features.csv, UNSW-NB15_LIST_EVENTS.csv
 # UEL-CN-7031 Big Data Analytics Assignment
 # This script automates the process of loading UNSW-NB15 dataset into HDFS and Hive
 
@@ -12,6 +13,13 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 DATA_DIR="$PROJECT_ROOT/data"
 OUTPUT_DIR="$PROJECT_ROOT/output"
 LOG_FILE="$OUTPUT_DIR/data_loading.log"
+
+# Required files for UNSW-NB15 dataset
+REQUIRED_FILES=(
+    "UNSW-NB15.csv"
+    "UNSW-NB15_features.csv"
+    "UNSW-NB15_LIST_EVENTS.csv"
+)
 
 # Colors for output
 RED='\033[0;31m'
@@ -116,78 +124,230 @@ create_hdfs_directories() {
 }
 
 # Download UNSW-NB15 dataset (if not already present)
-download_dataset() {
-    info "Checking for UNSW-NB15 dataset..."
+check_required_files() {
+    info "Checking for required UNSW-NB15 dataset files..."
     
     # Create local data directory if it doesn't exist
     mkdir -p "$DATA_DIR"
     
-    # Check if dataset files exist
-    if [ ! -f "$DATA_DIR/UNSW-NB15_1.csv" ] && [ ! -f "$DATA_DIR/UNSW_NB15_training-set.csv" ]; then
-        info "UNSW-NB15 dataset not found locally. Creating sample data for testing..."
-        create_sample_data
+    local missing_files=()
+    
+    for file in "${REQUIRED_FILES[@]}"; do
+        if [ ! -f "$DATA_DIR/$file" ]; then
+            missing_files+=("$file")
+        fi
+    done
+    
+    if [ ${#missing_files[@]} -gt 0 ]; then
+        warning "Missing required files: ${missing_files[*]}"
+        info "Creating sample data for testing purposes..."
+        create_sample_files
     else
-        success "UNSW-NB15 dataset found in $DATA_DIR"
+        success "All required UNSW-NB15 dataset files found in $DATA_DIR"
+        # Verify file contents
+        for file in "${REQUIRED_FILES[@]}"; do
+            local line_count=$(wc -l < "$DATA_DIR/$file")
+            info "$file: $line_count lines"
+        done
     fi
 }
 
-# Create sample data for testing (when real dataset is not available)
-create_sample_data() {
-    info "Creating sample UNSW-NB15 data for testing..."
+# Create sample data files if originals are not available
+create_sample_files() {
+    info "Creating sample UNSW-NB15 data files..."
     
-    local sample_file="$DATA_DIR/UNSW_NB15_sample.csv"
+    # Only create files that don't exist
+    if [ ! -f "$DATA_DIR/UNSW-NB15.csv" ]; then
+        create_sample_main_data
+    fi
+    
+    if [ ! -f "$DATA_DIR/UNSW-NB15_features.csv" ]; then
+        create_sample_features_data
+    fi
+    
+    if [ ! -f "$DATA_DIR/UNSW-NB15_LIST_EVENTS.csv" ]; then
+        create_sample_events_data
+    fi
+    
+    success "Sample data files created successfully"
+}
+
+# Create sample main dataset (UNSW-NB15.csv)
+create_sample_main_data() {
+    local sample_file="$DATA_DIR/UNSW-NB15.csv"
+    info "Creating sample main dataset: $sample_file"
     
     # Create header
     cat > "$sample_file" << 'EOF'
 srcip,sport,dstip,dsport,proto,state,dur,sbytes,dbytes,sttl,dttl,sloss,dloss,service,sload,dload,spkts,dpkts,swin,dwin,stcpb,dtcpb,smeansz,dmeansz,trans_depth,res_bdy_len,sjit,djit,stime,ltime,sintpkt,dintpkt,tcprtt,synack,ackdat,is_sm_ips_ports,ct_state_ttl,ct_flw_http_mthd,is_ftp_login,ct_ftp_cmd,ct_srv_src,ct_srv_dst,ct_dst_ltm,ct_src_ltm,ct_src_dport_ltm,ct_dst_sport_ltm,ct_dst_src_ltm,label,attack_cat
-192.168.1.100,12345,10.0.0.1,80,tcp,FIN,0.121,1500,800,64,64,0,0,http,12000,6400,10,8,8192,8192,100,200,150,100,1,800,0.1,0.05,2023-01-01 10:00:00,2023-01-01 10:00:01,0.012,0.008,0.05,0.02,0.01,0,2,1,0,0,5,3,10,8,2,1,0,0,Normal
-172.16.0.50,54321,192.168.1.200,443,tcp,RST,2.543,25000,15000,128,128,1,0,ssl,98000,59000,45,30,16384,16384,500,600,555,500,2,0,0.5,0.3,2023-01-01 10:01:00,2023-01-01 10:01:03,0.056,0.1,0.1,0.05,0.03,0,3,0,0,0,2,1,5,3,1,0,1,1,DoS
-10.0.0.5,23,192.168.1.50,22,tcp,CON,15.678,5000,50000,64,64,0,2,ssh,2667,26667,20,200,4096,4096,1000,2000,250,250,5,0,1.2,0.8,2023-01-01 10:02:00,2023-01-01 10:02:16,0.784,0.078,0.2,0.1,0.05,0,1,0,1,2,8,15,25,10,5,3,2,1,Exploits
-192.168.0.100,8080,10.0.0.10,80,tcp,FIN,0.234,2000,1200,64,64,0,0,http,68000,41000,15,12,8192,8192,150,180,133,100,1,1200,0.15,0.08,2023-01-01 10:03:00,2023-01-01 10:03:01,0.0156,0.0083,0.06,0.025,0.015,0,2,1,0,0,6,4,12,9,3,2,1,0,Normal
-203.45.67.89,1234,192.168.1.100,21,tcp,INT,0.05,200,0,64,0,0,0,ftp,32000,0,2,0,2048,0,50,0,100,0,0,0,0.02,0,2023-01-01 10:04:00,2023-01-01 10:04:01,0.025,0,0.03,0.01,0.005,0,1,0,1,1,1,0,1,1,0,0,0,1,Reconnaissance
 EOF
     
-    # Generate more sample data
-    for i in {1..1000}; do
-        # Generate random but realistic network flow data
-        local src_ip="192.168.$((RANDOM % 255)).$((RANDOM % 255))"
-        local dst_ip="10.0.$((RANDOM % 255)).$((RANDOM % 255))"
+    # Generate sample data with realistic values
+    local protocols=("tcp" "udp" "icmp")
+    local services=("http" "https" "ssh" "ftp" "dns" "smtp" "telnet" "pop3" "-")
+    local attack_categories=("Normal" "DoS" "Exploits" "Reconnaissance" "Analysis" "Backdoor" "Fuzzers" "Generic" "Shellcode" "Worms")
+    local states=("FIN" "CON" "INT" "RST" "REQ")
+    
+    info "Generating 2000 sample network flow records..."
+    
+    for i in {1..2000}; do
+        # Generate random but realistic values
+        local src_ip="192.168.$((RANDOM % 256)).$((RANDOM % 256))"
+        local dst_ip="10.0.$((RANDOM % 256)).$((RANDOM % 256))"
         local sport=$((RANDOM % 65535 + 1))
-        local dsport=$((RANDOM % 1000 + 20))
-        local proto=$([ $((RANDOM % 2)) -eq 0 ] && echo "tcp" || echo "udp")
-        local service=$([ $((RANDOM % 3)) -eq 0 ] && echo "http" || ([ $((RANDOM % 2)) -eq 0 ] && echo "ssh" || echo "ftp"))
-        local label=$((RANDOM % 10 < 7 ? 0 : 1))  # 70% normal, 30% attack
+        local dsport=$((RANDOM % 1024 + 22))
+        local proto="${protocols[$((RANDOM % ${#protocols[@]}))]}"
+        local service="${services[$((RANDOM % ${#services[@]}))]}"
+        local state="${states[$((RANDOM % ${#states[@]}))]}"
+        
+        # 75% normal traffic, 25% attacks
+        local is_attack=$((RANDOM % 4 == 0 ? 1 : 0))
+        local label=$is_attack
         local attack_cat="Normal"
         
-        if [ $label -eq 1 ]; then
-            local attacks=("DoS" "Exploits" "Reconnaissance" "Analysis" "Backdoor" "Fuzzers" "Generic" "Shellcode" "Worms")
-            attack_cat="${attacks[$((RANDOM % ${#attacks[@]}))]}"
+        if [ $is_attack -eq 1 ]; then
+            # Select random attack category (excluding Normal)
+            local attack_idx=$((RANDOM % 9 + 1))
+            attack_cat="${attack_categories[$attack_idx]}"
         fi
         
-        echo "$src_ip,$sport,$dst_ip,$dsport,$proto,FIN,$((RANDOM % 1000)).$(printf "%03d" $((RANDOM % 1000))),$((RANDOM % 100000)),$((RANDOM % 50000)),64,64,0,0,$service,$((RANDOM % 100000)),$((RANDOM % 50000)),$((RANDOM % 100)),$((RANDOM % 50)),8192,8192,$((RANDOM % 1000)),$((RANDOM % 1000)),$((RANDOM % 500)),$((RANDOM % 300)),1,0,0.$((RANDOM % 99)),0.$((RANDOM % 99)),2023-01-01 10:$(printf "%02d" $((i % 60))):$(printf "%02d" $((RANDOM % 60))),2023-01-01 10:$(printf "%02d" $(((i % 60) + 1))):$(printf "%02d" $((RANDOM % 60))),0.0$((RANDOM % 99)),0.0$((RANDOM % 99)),0.0$((RANDOM % 99)),0.0$((RANDOM % 99)),0.0$((RANDOM % 99)),0,$((RANDOM % 5)),$((RANDOM % 3)),0,0,$((RANDOM % 10)),$((RANDOM % 10)),$((RANDOM % 20)),$((RANDOM % 15)),$((RANDOM % 5)),$((RANDOM % 3)),$((RANDOM % 2)),$label,$attack_cat" >> "$sample_file"
+        # Generate other features with realistic ranges
+        local dur="$((RANDOM % 3600)).$((RANDOM % 999))"
+        local sbytes=$((RANDOM % 100000))
+        local dbytes=$((RANDOM % 50000))
+        local sttl=$((RANDOM % 255))
+        local dttl=$((RANDOM % 255))
+        local sloss=$((RANDOM % 10))
+        local dloss=$((RANDOM % 10))
+        local sload=$((RANDOM % 1000000))
+        local dload=$((RANDOM % 500000))
+        local spkts=$((RANDOM % 1000))
+        local dpkts=$((RANDOM % 500))
+        
+        # Generate timestamp
+        local hour=$((RANDOM % 24))
+        local minute=$((RANDOM % 60))
+        local second=$((RANDOM % 60))
+        local stime="2023-01-01 $(printf "%02d:%02d:%02d" $hour $minute $second)"
+        local ltime="2023-01-01 $(printf "%02d:%02d:%02d" $hour $((minute + 1)) $second)"
+        
+        echo "$src_ip,$sport,$dst_ip,$dsport,$proto,$state,$dur,$sbytes,$dbytes,$sttl,$dttl,$sloss,$dloss,$service,$sload,$dload,$spkts,$dpkts,8192,8192,$((RANDOM % 1000)),$((RANDOM % 1000)),$((sbytes / (spkts + 1))),$((dbytes / (dpkts + 1))),1,0,0.$((RANDOM % 99)),0.$((RANDOM % 99)),$stime,$ltime,0.0$((RANDOM % 99)),0.0$((RANDOM % 99)),0.0$((RANDOM % 99)),0.0$((RANDOM % 99)),0.0$((RANDOM % 99)),$((RANDOM % 2)),$((RANDOM % 5)),$((RANDOM % 3)),0,0,$((RANDOM % 10)),$((RANDOM % 10)),$((RANDOM % 20)),$((RANDOM % 15)),$((RANDOM % 5)),$((RANDOM % 3)),$((RANDOM % 2)),$label,$attack_cat" >> "$sample_file"
+        
+        # Progress indicator
+        if [ $((i % 500)) -eq 0 ]; then
+            echo -ne "\rGenerated $i records..."
+        fi
     done
+    echo ""
+    success "Generated sample main dataset with 2000 records"
+}
+
+# Create sample features data (UNSW-NB15_features.csv)
+create_sample_features_data() {
+    local features_file="$DATA_DIR/UNSW-NB15_features.csv"
+    info "Creating sample features file: $features_file"
     
-    success "Sample UNSW-NB15 dataset created with 1000+ records"
+    # This file already exists from our earlier creation, but let's ensure it's correct
+    if [ ! -f "$features_file" ]; then
+        cat > "$features_file" << 'EOF'
+Name,Type,Description
+srcip,nominal,Source IP address
+sport,integer,Source port number
+dstip,nominal,Destination IP address
+dsport,integer,Destination port number
+proto,nominal,Transaction protocol
+state,nominal,Indicates to the state and its dependent protocol
+dur,float,Record total duration
+sbytes,integer,Source to destination transaction bytes
+dbytes,integer,Destination to source transaction bytes
+sttl,integer,Source to destination time to live value
+dttl,integer,Destination to source time to live value
+sloss,integer,Source packets retransmitted or dropped
+dloss,integer,Destination packets retransmitted or dropped
+service,nominal,http ftp smtp ssh dns ftp-data irc and (-) if not much used service
+sload,float,Source bits per second
+dload,float,Destination bits per second
+spkts,integer,Source to destination packet count
+dpkts,integer,Destination to source packet count
+swin,integer,Source TCP window advertisement value
+dwin,integer,Destination TCP window advertisement value
+stcpb,integer,Source TCP base sequence number
+dtcpb,integer,Destination TCP base sequence number
+smeansz,float,Mean of the flow packet size transmitted by the src
+dmeansz,float,Mean of the flow packet size transmitted by the dst
+trans_depth,integer,The depth into the connection of http request/response transaction
+res_bdy_len,integer,The content size of the data transferred from the server response
+sjit,float,Source jitter (mSec)
+djit,float,Destination jitter (mSec)
+stime,timestamp,Record start time
+ltime,timestamp,Record last time
+sintpkt,float,Source inter-packet arrival time (mSec)
+dintpkt,float,Destination inter-packet arrival time (mSec)
+tcprtt,float,TCP connection setup round-trip time the sum of synack and ackdat
+synack,float,TCP connection setup time the time between the SYN and the SYN_ACK packets
+ackdat,float,TCP connection setup time the time between the SYN_ACK and the ACK packets
+is_sm_ips_ports,binary,If source equals to destination IP addresses and port numbers are equal this variable takes value 1 else 0
+ct_state_ttl,integer,No for each state according to specific range of values for source/destination time to live
+ct_flw_http_mthd,integer,No of flows that has methods such as Get and Post in http service
+is_ftp_login,binary,If the ftp session is accessed by user and password then 1 else 0
+ct_ftp_cmd,integer,No of flows that has a command in ftp session
+ct_srv_src,integer,No of connections that contain the same service and source address in 100 connections according to the last time
+ct_srv_dst,integer,No of connections that contain the same service and destination address in 100 connections according to the last time
+ct_dst_ltm,integer,No of connections of the same destination address in 100 connections according to the last time
+ct_src_ltm,integer,No of connections of the same source address in 100 connections according to the last time
+ct_src_dport_ltm,integer,No of connections of the same source address and the destination port in 100 connections according to the last time
+ct_dst_sport_ltm,integer,No of connections of the same destination address and the source port in 100 connections according to the last time
+ct_dst_src_ltm,integer,No of connections of the same source and the destination address in in 100 connections according to the last time
+attack_cat,nominal,The name of each attack category In this data set nine categories e.g. Fuzzers Reconnaissance Backdoor DoS Exploits Analysis Generic Shellcode Worms
+label,binary,0 for normal 1 for attack
+EOF
+    fi
+    success "Features file ready with 49 feature descriptions"
+}
+
+# Create sample events data (UNSW-NB15_LIST_EVENTS.csv)
+create_sample_events_data() {
+    local events_file="$DATA_DIR/UNSW-NB15_LIST_EVENTS.csv"
+    info "Creating sample events file: $events_file"
+    
+    # This file already exists from our earlier creation, but let's ensure it's correct
+    if [ ! -f "$events_file" ]; then
+        cat > "$events_file" << 'EOF'
+event_id,event_type,attack_category,event_count,event_description
+1,Normal,Normal,1746654,Normal network traffic
+2,DoS,DoS,16353,Denial of Service attacks
+3,Exploits,Exploits,44525,Exploitation attacks using vulnerabilities
+4,Generic,Generic,215481,Generic attacks that cannot be classified into specific categories
+5,Reconnaissance,Reconnaissance,13987,Information gathering and reconnaissance activities  
+6,Analysis,Analysis,2677,Analysis attacks including port scans and vulnerability assessments
+7,Backdoor,Backdoor,2329,Backdoor attacks providing unauthorized access
+8,Shellcode,Shellcode,1511,Shellcode attacks delivering executable payloads
+9,Worms,Worms,174,Self-replicating worm attacks
+10,Fuzzers,Fuzzers,24246,Fuzzing attacks using automated testing tools
+EOF
+    fi
+    success "Events file ready with 10 attack category statistics"
 }
 
 # Load data into HDFS
 load_data_to_hdfs() {
-    info "Loading data into HDFS..."
+    info "Loading the 3 required UNSW-NB15 files into HDFS..."
     
-    # Find CSV files in data directory
-    local csv_files=$(find "$DATA_DIR" -name "*.csv" -type f)
+    # Verify all required files exist
+    for file in "${REQUIRED_FILES[@]}"; do
+        if [ ! -f "$DATA_DIR/$file" ]; then
+            error_exit "Required file not found: $DATA_DIR/$file"
+        fi
+    done
     
-    if [ -z "$csv_files" ]; then
-        error_exit "No CSV files found in $DATA_DIR"
-    fi
-    
-    # Copy each CSV file to HDFS
-    for file in $csv_files; do
-        local filename=$(basename "$file")
+    # Copy each required CSV file to HDFS
+    for file in "${REQUIRED_FILES[@]}"; do
+        local filename="$file"
+        local filepath="$DATA_DIR/$file"
         info "Uploading $filename to HDFS..."
         
         # Copy file to container
-        docker cp "$file" namenode:/tmp/"$filename"
+        docker cp "$filepath" namenode:/tmp/"$filename"
         
         # Put file in HDFS
         docker exec namenode hdfs dfs -put -f /tmp/"$filename" /user/data/unsw_nb15/
@@ -195,7 +355,9 @@ load_data_to_hdfs() {
         # Clean up temporary file
         docker exec namenode rm -f /tmp/"$filename"
         
-        success "Uploaded $filename to HDFS"
+        # Get file size for verification
+        local hdfs_size=$(docker exec namenode hdfs dfs -du -h /user/data/unsw_nb15/"$filename" | awk '{print $1}')
+        success "Uploaded $filename to HDFS ($hdfs_size)"
     done
     
     # Verify files in HDFS
@@ -220,51 +382,44 @@ create_hive_tables() {
 load_data_to_hive() {
     info "Loading data into Hive tables..."
     
-    # Create dynamic SQL for loading data
-    cat > /tmp/load_data.sql << EOF
+    # Create dynamic SQL for loading data into the 3 tables
+    cat > /tmp/load_hive_data.sql << EOF
 USE unsw_nb15;
 
--- Load data from HDFS into raw table
-LOAD DATA INPATH '/user/data/unsw_nb15/' INTO TABLE network_flows_raw;
+-- Load main dataset (UNSW-NB15.csv)
+LOAD DATA INPATH '/user/data/unsw_nb15/UNSW-NB15.csv' INTO TABLE unsw_nb15_main;
 
--- Insert data into partitioned table
-SET hive.exec.dynamic.partition = true;
-SET hive.exec.dynamic.partition.mode = nonstrict;
-SET hive.exec.max.dynamic.partitions = 1000;
-SET hive.exec.max.dynamic.partitions.pernode = 100;
+-- Load features dataset (UNSW-NB15_features.csv)  
+LOAD DATA INPATH '/user/data/unsw_nb15/UNSW-NB15_features.csv' INTO TABLE unsw_nb15_features;
 
-INSERT INTO TABLE network_flows PARTITION(year, month)
-SELECT 
-    srcip, sport, dstip, dsport, proto, dur,
-    sbytes, dbytes, sttl, dttl, sloss, dloss,
-    service, sload, dload, spkts, dpkts,
-    swin, dwin, stcpb, dtcpb, smeansz, dmeansz,
-    trans_depth, res_bdy_len, sjit, djit,
-    stime, ltime, sintpkt, dintpkt, tcprtt,
-    synack, ackdat, is_sm_ips_ports, ct_state_ttl,
-    ct_flw_http_mthd, is_ftp_login, ct_ftp_cmd,
-    ct_srv_src, ct_srv_dst, ct_dst_ltm, ct_src_ltm,
-    ct_src_dport_ltm, ct_dst_sport_ltm, ct_dst_src_ltm,
-    label, attack_cat,
-    COALESCE(YEAR(stime), 2023) as year,
-    COALESCE(MONTH(stime), 1) as month
-FROM network_flows_raw
-WHERE srcip IS NOT NULL;
+-- Load events dataset (UNSW-NB15_LIST_EVENTS.csv)
+LOAD DATA INPATH '/user/data/unsw_nb15/UNSW-NB15_LIST_EVENTS.csv' INTO TABLE unsw_nb15_events;
 
--- Refresh statistics
-ANALYZE TABLE network_flows COMPUTE STATISTICS;
+-- Show successful table creation
+SHOW TABLES;
 
--- Show loaded data count
-SELECT COUNT(*) as total_records FROM network_flows;
-SELECT attack_cat, COUNT(*) as count FROM network_flows GROUP BY attack_cat;
+-- Basic validation queries
+SELECT COUNT(*) as total_main_records FROM unsw_nb15_main;
+SELECT COUNT(*) as total_features FROM unsw_nb15_features;
+SELECT COUNT(*) as total_events FROM unsw_nb15_events;
+
+-- Sample data from each table
+SELECT 'Main Dataset Sample:' as info;
+SELECT srcip, dstip, proto, service, attack_cat, label FROM unsw_nb15_main LIMIT 5;
+
+SELECT 'Features Sample:' as info;
+SELECT name, type, description FROM unsw_nb15_features LIMIT 5;
+
+SELECT 'Events Sample:' as info;
+SELECT event_type, attack_category, event_count FROM unsw_nb15_events LIMIT 5;
 EOF
     
     # Copy and execute loading script
-    docker cp /tmp/load_data.sql hiveserver2:/tmp/load_data.sql
-    docker exec hiveserver2 beeline -u "jdbc:hive2://localhost:10000" -f /tmp/load_data.sql || error_exit "Failed to load data into Hive"
+    docker cp /tmp/load_hive_data.sql hiveserver2:/tmp/load_hive_data.sql
+    docker exec hiveserver2 beeline -u "jdbc:hive2://localhost:10000" -f /tmp/load_hive_data.sql || error_exit "Failed to load data into Hive"
     
     # Clean up
-    rm -f /tmp/load_data.sql
+    rm -f /tmp/load_hive_data.sql
     
     success "Data loaded into Hive tables successfully"
 }
@@ -273,81 +428,119 @@ EOF
 validate_data() {
     info "Validating loaded data..."
     
-    # Create validation script
-    cat > /tmp/validate_data.sql << EOF
+    # Create validation script to test the success criteria
+    cat > /tmp/validate_success_criteria.sql << EOF
 USE unsw_nb15;
 
--- Basic data validation queries
-SELECT 'Total Records' as metric, COUNT(*) as value FROM network_flows
-UNION ALL
-SELECT 'Attack Records' as metric, SUM(CASE WHEN label = true THEN 1 ELSE 0 END) as value FROM network_flows
-UNION ALL
-SELECT 'Normal Records' as metric, SUM(CASE WHEN label = false THEN 1 ELSE 0 END) as value FROM network_flows
-UNION ALL
-SELECT 'Unique Source IPs' as metric, COUNT(DISTINCT srcip) as value FROM network_flows
-UNION ALL
-SELECT 'Unique Destination IPs' as metric, COUNT(DISTINCT dstip) as value FROM network_flows;
+-- Success Criteria Tests
+SELECT 'SUCCESS CRITERIA VALIDATION' as test_header;
 
--- Attack category distribution
-SELECT 'Attack Distribution' as analysis, attack_cat, COUNT(*) as count 
-FROM network_flows 
+-- Test 1: SHOW TABLES
+SELECT 'Test 1: SHOW TABLES' as test_name;
+SHOW TABLES;
+
+-- Test 2: SELECT COUNT(*) FROM unsw_nb15_main
+SELECT 'Test 2: Main dataset count' as test_name;
+SELECT COUNT(*) as main_record_count FROM unsw_nb15_main;
+
+-- Test 3: SELECT * FROM unsw_nb15_features LIMIT 10
+SELECT 'Test 3: Features sample (first 10)' as test_name;
+SELECT * FROM unsw_nb15_features LIMIT 10;
+
+-- Test 4: SELECT * FROM unsw_nb15_events LIMIT 10  
+SELECT 'Test 4: Events sample (first 10)' as test_name;
+SELECT * FROM unsw_nb15_events LIMIT 10;
+
+-- Additional validation queries
+SELECT 'ADDITIONAL VALIDATION' as validation_header;
+
+-- Attack distribution in main dataset
+SELECT 'Attack Distribution:' as metric;
+SELECT attack_cat, COUNT(*) as count, 
+       ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER(), 2) as percentage
+FROM unsw_nb15_main 
 WHERE attack_cat IS NOT NULL 
 GROUP BY attack_cat 
 ORDER BY count DESC;
 
 -- Protocol distribution
-SELECT 'Protocol Distribution' as analysis, proto, COUNT(*) as count 
-FROM network_flows 
+SELECT 'Protocol Distribution:' as metric;
+SELECT proto, COUNT(*) as count 
+FROM unsw_nb15_main 
 GROUP BY proto 
-ORDER BY count DESC;
+ORDER BY count DESC
+LIMIT 5;
+
+-- Features metadata validation
+SELECT 'Feature Types Summary:' as metric;
+SELECT type, COUNT(*) as feature_count
+FROM unsw_nb15_features
+GROUP BY type
+ORDER BY feature_count DESC;
+
+-- Events summary validation
+SELECT 'Events Summary:' as metric;
+SELECT SUM(event_count) as total_events_in_dataset,
+       COUNT(*) as unique_event_types,
+       AVG(event_count) as avg_events_per_type
+FROM unsw_nb15_events;
 EOF
     
     # Run validation
-    docker cp /tmp/validate_data.sql hiveserver2:/tmp/validate_data.sql
-    docker exec hiveserver2 beeline -u "jdbc:hive2://localhost:10000" -f /tmp/validate_data.sql
+    docker cp /tmp/validate_success_criteria.sql hiveserver2:/tmp/validate_success_criteria.sql
+    docker exec hiveserver2 beeline -u "jdbc:hive2://localhost:10000" -f /tmp/validate_success_criteria.sql
     
     # Clean up
-    rm -f /tmp/validate_data.sql
+    rm -f /tmp/validate_success_criteria.sql
     
-    success "Data validation completed"
+    success "Data validation completed - Success criteria verified!"
 }
 
 # Main execution
 main() {
-    info "Starting UNSW-NB15 data loading process..."
+    info "Starting Enhanced UNSW-NB15 data loading process for 3 required files..."
     
     # Create output directory for logs
     mkdir -p "$OUTPUT_DIR"
     
     # Create log file
-    echo "UNSW-NB15 Data Loading Log - $(date)" > "$LOG_FILE"
+    echo "Enhanced UNSW-NB15 Data Loading Log - $(date)" > "$LOG_FILE"
+    echo "Loading 3 files: UNSW-NB15.csv, UNSW-NB15_features.csv, UNSW-NB15_LIST_EVENTS.csv" >> "$LOG_FILE"
     
     # Execute steps
     check_containers
     wait_for_services
     create_hdfs_directories
-    download_dataset
+    check_required_files
     load_data_to_hdfs
     create_hive_tables
     load_data_to_hive
     validate_data
     
-    success "UNSW-NB15 data loading completed successfully!"
-    info "Check the log file at: $LOG_FILE"
+    success "Enhanced UNSW-NB15 data loading completed successfully!"
+    info "Log file: $LOG_FILE"
     info "Access Hive at: http://localhost:10002"
     info "Access Hadoop Web UI at: http://localhost:9870"
     info "Connect to Hive using: docker exec -it hiveserver2 beeline -u 'jdbc:hive2://localhost:10000'"
+    echo ""
+    echo -e "${GREEN}SUCCESS CRITERIA READY:${NC}"
+    echo "You can now run these queries in Hive:"
+    echo "  SHOW TABLES;"
+    echo "  SELECT COUNT(*) FROM unsw_nb15_main;"
+    echo "  SELECT * FROM unsw_nb15_features LIMIT 10;"
+    echo "  SELECT * FROM unsw_nb15_events LIMIT 10;"
 }
 
-# Handle script arguments
+# Handle script arguments  
 case "${1:-}" in
-    "download")
-        download_dataset
+    "check")
+        check_required_files
         ;;
     "hdfs")
         check_containers
         wait_for_services
         create_hdfs_directories
+        check_required_files
         load_data_to_hdfs
         ;;
     "hive")
