@@ -6,14 +6,14 @@
     <!-- Namenode storage directories -->
     <property>
         <name>dfs.namenode.name.dir</name>
-        <value>file:///opt/hadoop/data/namenode</value>
+        <value>file:///hadoop/dfs/name</value>
         <description>Directory for namenode metadata</description>
     </property>
     
     <!-- Datanode storage directories -->
     <property>
         <name>dfs.datanode.data.dir</name>
-        <value>file:///opt/hadoop/data/datanode</value>
+        <value>file:///hadoop/dfs/data</value>
         <description>Directory for datanode storage</description>
     </property>
     
@@ -34,7 +34,7 @@
     <!-- Namenode settings -->
     <property>
         <name>dfs.namenode.checkpoint.dir</name>
-        <value>file:///opt/hadoop/data/namesecondary</value>
+        <value>file:///hadoop/dfs/namesecondary</value>
     </property>
     
     <!-- Permissions (disabled for development ease) -->
