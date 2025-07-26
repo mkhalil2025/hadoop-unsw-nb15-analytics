@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+  <property>
+    <name>javax.jdo.option.ConnectionURL</name>
+    <value>jdbc:postgresql://postgres:5432/metastore</value>
+    <description>JDBC connect string for a JDBC metastore</description>
+  </property>
+
+  <property>
+    <name>javax.jdo.option.ConnectionDriverName</name>
+    <value>org.postgresql.Driver</value>
+    <description>Driver class name for a JDBC metastore</description>
+  </property>
+
+  <property>
+    <name>javax.jdo.option.ConnectionUserName</name>
+    <value>hive</value>
+    <description>Username to use against metastore database</description>
+  </property>
+
+  <property>
+    <name>javax.jdo.option.ConnectionPassword</name>
+    <value>hive123</value>
+    <description>Password to use against metastore database</description>
+  </property>
+
+  <property>
+    <name>hive.metastore.schema.verification</name>
+    <value>true</value>
+    <description>Enforce metastore schema version consistency</description>
+  </property>
+
+  <property>
+    <name>hive.metastore.schema.verification.record.version</name>
+    <value>true</value>
+    <description>Enable schema version recording in metastore</description>
+  </property>
+
+  <property>
+    <name>datanucleus.autoCreateSchema</name>
+    <value>false</value>
+    <description>Creates necessary schema on a startup if one doesn't exist</description>
+  </property>
+
+  <property>
+    <name>datanucleus.fixedDatastore</name>
+    <value>true</value>
+    <description>Tells DataNucleus that we are using a fixed datastore so don't autodetect</description>
+  </property>
+
+  <property>
+    <name>datanucleus.schema.autoCreateAll</name>
+    <value>false</value>
+    <description>Auto creates necessary schema on startup</description>
+  </property>
+</configuration>
