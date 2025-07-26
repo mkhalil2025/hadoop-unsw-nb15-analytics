@@ -167,15 +167,12 @@ services:
       HIVE_CORE_CONF_javax_jdo_option_ConnectionUserName: "hive"
       HIVE_CORE_CONF_javax_jdo_option_ConnectionPassword: "hive123"
       HIVE_CORE_CONF_datanucleus_autoCreateSchema: "true"
-      HIVE_CORE_CONF_datanucleus_fixedDatastore: "false"
-      HIVE_CORE_CONF_datanucleus_schema_autoCreateAll: "true"
+      HIVE_CORE_CONF_datanucleus_fixedDatastore: "false" 
       HIVE_CORE_CONF_datanucleus_schema_autoCreateTables: "true"
-      HIVE_CORE_CONF_datanucleus_schema_autoCreateColumns: "true"
-      HIVE_CORE_CONF_datanucleus_schema_autoCreateConstraints: "true"
+      HIVE_CORE_CONF_datanucleus_identifierFactory: "datanucleus1"
+      HIVE_CORE_CONF_datanucleus_plugin_pluginRegistryBundleCheck: "LOG"
       HIVE_SITE_CONF_hive_metastore_schema_verification: "false"
       HIVE_SITE_CONF_hive_metastore_schema_verification_record_version: "false"
-      HIVE_SITE_CONF_datanucleus_autoCreateSchema: "true"
-      HIVE_SITE_CONF_datanucleus_schema_autoCreateTables: "true"
     volumes:
       - ./scripts:/opt/scripts
     ports:
@@ -218,14 +215,12 @@ services:
     command: >
       bash -c "
         pip install --upgrade pip &&
-        pip install pyhive thrift sasl thrift_sasl hdfs3 &&
+        pip install pyhive thrift hdfs3 &&
         pip install matplotlib seaborn scikit-learn pandas numpy plotly &&
-        pip install PyHive[hive] sqlalchemy &&
+        pip install PyHive sqlalchemy &&
         pip install imbalanced-learn xgboost lightgbm &&
-        pip install tensorflow keras torch torchvision &&
-        pip install networkx pyvis dash streamlit &&
-        pip install psycopg2-binary pymongo cassandra-driver &&
-        pip install apache-airflow great-expectations evidently &&
+        pip install networkx pyvis &&
+        pip install psycopg2-binary &&
         pip install shap lime yellowbrick &&
         start-notebook.sh --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.allow_root=True
       "
