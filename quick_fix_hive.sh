@@ -7,7 +7,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MAIN_SCRIPT="$SCRIPT_DIR/fix_hive_metastore.sh"
+MAIN_SCRIPT="$SCRIPT_DIR/scripts/fix_hive_metastore.sh"
 
 # Colors
 RED='\033[0;31m'

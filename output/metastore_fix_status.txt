@@ -1,0 +1,81 @@
+HIVE METASTORE SCHEMA FIX STATUS REPORT
+Generated: Sat Jul 26 17:25:00 UTC 2025
+Project: UNSW-NB15 Hadoop Analytics Environment
+
+=================================================================
+SYSTEM INFORMATION:
+=================================================================
+- OS: Linux 6.11.0-1018-azure
+- Architecture: x86_64
+- Available Memory: 15Gi
+- Available Disk: 28G
+- Docker Version: Docker version 28.0.4, build b8034c0
+
+=================================================================
+CONTAINER STATUS:
+=================================================================
+NAMES     STATUS    PORTS
+
+=================================================================
+HIVE METASTORE INFORMATION:
+=================================================================
+- Schema Version: 
+- Total Tables: 
+- Database: metastore
+- User: hive
+
+=================================================================
+SERVICE ENDPOINTS:
+=================================================================
+- Hadoop Namenode Web UI: http://localhost:9870
+- YARN ResourceManager: http://localhost:8088
+- Hive Server2 Web UI: http://localhost:10002
+- Hive Server2 JDBC: jdbc:hive2://localhost:10000
+- PostgreSQL: localhost:5432
+
+=================================================================
+CONNECTION COMMANDS:
+=================================================================
+Hive CLI (Beeline):
+docker exec -it hiveserver2 beeline -u 'jdbc:hive2://localhost:10000'
+
+Hadoop CLI:
+docker exec -it namenode hadoop fs -ls /
+
+PostgreSQL CLI:
+docker exec -it postgres-metastore psql -U hive -d metastore
+
+=================================================================
+TROUBLESHOOTING:
+=================================================================
+1. Check container logs:
+   docker-compose logs [container_name]
+
+2. Restart specific service:
+   docker-compose restart [container_name]
+
+3. Full environment restart:
+   docker-compose down && docker-compose up -d
+
+4. Re-run this fix script:
+   ./scripts/fix_hive_metastore.sh
+
+5. Clean restart (removes all data):
+   docker-compose down -v && ./scripts/fix_hive_metastore.sh
+
+=================================================================
+NEXT STEPS:
+=================================================================
+1. Access Hadoop Web UI: http://localhost:9870
+2. Access Hive Server2 Web UI: http://localhost:10002
+3. Start loading UNSW-NB15 data: ./scripts/load_data.sh
+4. Open Jupyter for analytics: http://localhost:8888
+
+=================================================================
+WINDOWS/WSL SPECIFIC NOTES:
+=================================================================
+- Ensure Docker Desktop is running
+- Use WSL terminal for best compatibility
+- If ports are blocked, check Windows Firewall
+- File paths should use forward slashes in WSL
+
