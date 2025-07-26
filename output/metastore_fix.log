@@ -3,3 +3,5 @@
 [0;36m📋 STEP 11: Generating comprehensive status report[0m
 [0;34mℹ️  Status report saved to: /home/runner/work/hadoop-unsw-nb15-analytics/hadoop-unsw-nb15-analytics/output/metastore_fix_status.txt[0m
 [0;32m✅ Status report generated successfully[0m
+[0;36m📋 STEP 1: Checking system requirements[0m
+[0;32m✅ System requirements check completed[0m
