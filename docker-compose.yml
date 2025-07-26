@@ -122,7 +122,9 @@ services:
       HIVE_CORE_CONF_javax_jdo_option_ConnectionPassword: "hive123"
       HIVE_CORE_CONF_datanucleus_autoCreateSchema: "false"
       HIVE_SITE_CONF_hive_metastore_uris: "thrift://hivemetastore:9083"
-      HIVE_SITE_CONF_hive_metastore_schema_verification: "false"
+      HIVE_SITE_CONF_hive_metastore_schema_verification: "true"
+      HIVE_SITE_CONF_hive_server2_enable_doAs: "false"
+      HIVE_SITE_CONF_hive_server2_thrift_bind_host: "0.0.0.0"
       SERVICE_PRECONDITION: "hivemetastore:9083"
     env_file:
       - .env
@@ -131,14 +133,24 @@ services:
       - ./hive:/opt/hive/scripts
       - ./config:/opt/hadoop/etc/hadoop
       - ./output:/opt/hive/output
+      - ./scripts:/opt/scripts
     ports:
       - "10000:10000"  # HiveServer2 Thrift
       - "10002:10002"  # HiveServer2 Web UI
     networks:
       - hadoop-network
     depends_on:
-      - hivemetastore
-      - namenode
+      hivemetastore:
+        condition: service_healthy
+      namenode:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "netstat -ln | grep 10000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    restart: on-failure
 
   # Hive Metastore
   hivemetastore:
@@ -153,11 +165,15 @@ services:
       HIVE_CORE_CONF_javax_jdo_option_ConnectionPassword: "hive123"
       HIVE_CORE_CONF_datanucleus_autoCreateSchema: "false"
       HIVE_CORE_CONF_datanucleus_fixedDatastore: "true"
+      HIVE_CORE_CONF_datanucleus_schema_autoCreateAll: "false"
+      HIVE_SITE_CONF_hive_metastore_schema_verification: "true"
+      HIVE_SITE_CONF_hive_metastore_schema_verification_record_version: "true"
     env_file:
       - .env
       - hadoop.env
     volumes:
       - ./config:/opt/hadoop/etc/hadoop
+      - ./scripts:/opt/scripts
     ports:
       - "9083:9083"  # Metastore Thrift
     networks:
@@ -165,6 +181,15 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      namenode:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "netstat -ln | grep 9083 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: on-failure
     command: /opt/hive/bin/hive --service metastore
 
   # Jupyter Notebook for Python Analytics
