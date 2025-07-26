@@ -6,14 +6,14 @@
     <!-- Namenode storage directories -->
     <property>
         <name>dfs.namenode.name.dir</name>
-        <value>file:///opt/hadoop/data/namenode</value>
+        <value>file:///hadoop/dfs/name</value>
         <description>Directory for namenode metadata</description>
     </property>
     
     <!-- Datanode storage directories -->
     <property>
         <name>dfs.datanode.data.dir</name>
-        <value>file:///opt/hadoop/data/datanode</value>
+        <value>file:///hadoop/dfs/data</value>
         <description>Directory for datanode storage</description>
     </property>
     
@@ -34,7 +34,7 @@
     <!-- Namenode settings -->
     <property>
         <name>dfs.namenode.checkpoint.dir</name>
-        <value>file:///opt/hadoop/data/namesecondary</value>
+        <value>file:///hadoop/dfs/namesecondary</value>
     </property>
     
     <!-- Permissions (disabled for development ease) -->
@@ -99,4 +99,82 @@
         <name>dfs.heartbeat.interval</name>
         <value>3</value>
     </property>
+<property><name>dfs.client.block.write.replace.datanode.on.failure.policy</name><value>NEVER</value></property>
+<property><name>dfs.datanode.data.dir</name><value>file:///hadoop/dfs/data</value></property>
+<property><name>dfs.webhdfs.enabled</name><value>true</value></property>
+<property><name>dfs.replication</name><value>1</value></property>
+<property><name>dfs.block.size</name><value>67108864</value></property>
+<property><name>dfs.permissions.enabled</name><value>false</value></property>
+<property><name>dfs.namenode.name.dir</name><value>file:///hadoop/dfs/name</value></property>
+<property><name>dfs.namenode.rpc-bind-host</name><value>0.0.0.0</value></property>
+<property><name>dfs.namenode.servicerpc-bind-host</name><value>0.0.0.0</value></property>
+<property><name>dfs.namenode.http-bind-host</name><value>0.0.0.0</value></property>
+<property><name>dfs.namenode.https-bind-host</name><value>0.0.0.0</value></property>
+<property><name>dfs.client.use.datanode.hostname</name><value>true</value></property>
+<property><name>dfs.datanode.use.datanode.hostname</name><value>true</value></property>
+<property><name>dfs.client.block.write.replace.datanode.on.failure.policy</name><value>NEVER</value></property>
+<property><name>dfs.datanode.data.dir</name><value>file:///hadoop/dfs/data</value></property>
+<property><name>dfs.webhdfs.enabled</name><value>true</value></property>
+<property><name>dfs.replication</name><value>1</value></property>
+<property><name>dfs.block.size</name><value>67108864</value></property>
+<property><name>dfs.permissions.enabled</name><value>false</value></property>
+<property><name>dfs.namenode.name.dir</name><value>file:///hadoop/dfs/name</value></property>
+<property><name>dfs.namenode.rpc-bind-host</name><value>0.0.0.0</value></property>
+<property><name>dfs.namenode.servicerpc-bind-host</name><value>0.0.0.0</value></property>
+<property><name>dfs.namenode.http-bind-host</name><value>0.0.0.0</value></property>
+<property><name>dfs.namenode.https-bind-host</name><value>0.0.0.0</value></property>
+<property><name>dfs.client.use.datanode.hostname</name><value>true</value></property>
+<property><name>dfs.datanode.use.datanode.hostname</name><value>true</value></property>
+<property><name>dfs.client.block.write.replace.datanode.on.failure.policy</name><value>NEVER</value></property>
+<property><name>dfs.datanode.data.dir</name><value>file:///hadoop/dfs/data</value></property>
+<property><name>dfs.webhdfs.enabled</name><value>true</value></property>
+<property><name>dfs.replication</name><value>1</value></property>
+<property><name>dfs.block.size</name><value>67108864</value></property>
+<property><name>dfs.permissions.enabled</name><value>false</value></property>
+<property><name>dfs.namenode.name.dir</name><value>file:///hadoop/dfs/name</value></property>
+<property><name>dfs.namenode.rpc-bind-host</name><value>0.0.0.0</value></property>
+<property><name>dfs.namenode.servicerpc-bind-host</name><value>0.0.0.0</value></property>
+<property><name>dfs.namenode.http-bind-host</name><value>0.0.0.0</value></property>
+<property><name>dfs.namenode.https-bind-host</name><value>0.0.0.0</value></property>
+<property><name>dfs.client.use.datanode.hostname</name><value>true</value></property>
+<property><name>dfs.datanode.use.datanode.hostname</name><value>true</value></property>
+<property><name>dfs.client.block.write.replace.datanode.on.failure.policy</name><value>NEVER</value></property>
+<property><name>dfs.datanode.data.dir</name><value>file:///hadoop/dfs/data</value></property>
+<property><name>dfs.webhdfs.enabled</name><value>true</value></property>
+<property><name>dfs.replication</name><value>1</value></property>
+<property><name>dfs.block.size</name><value>67108864</value></property>
+<property><name>dfs.permissions.enabled</name><value>false</value></property>
+<property><name>dfs.namenode.name.dir</name><value>file:///hadoop/dfs/name</value></property>
+<property><name>dfs.namenode.rpc-bind-host</name><value>0.0.0.0</value></property>
+<property><name>dfs.namenode.servicerpc-bind-host</name><value>0.0.0.0</value></property>
+<property><name>dfs.namenode.http-bind-host</name><value>0.0.0.0</value></property>
+<property><name>dfs.namenode.https-bind-host</name><value>0.0.0.0</value></property>
+<property><name>dfs.client.use.datanode.hostname</name><value>true</value></property>
+<property><name>dfs.datanode.use.datanode.hostname</name><value>true</value></property>
+<property><name>dfs.client.block.write.replace.datanode.on.failure.policy</name><value>NEVER</value></property>
+<property><name>dfs.datanode.data.dir</name><value>file:///hadoop/dfs/data</value></property>
+<property><name>dfs.webhdfs.enabled</name><value>true</value></property>
+<property><name>dfs.replication</name><value>1</value></property>
+<property><name>dfs.block.size</name><value>67108864</value></property>
+<property><name>dfs.permissions.enabled</name><value>false</value></property>
+<property><name>dfs.namenode.name.dir</name><value>file:///hadoop/dfs/name</value></property>
+<property><name>dfs.namenode.rpc-bind-host</name><value>0.0.0.0</value></property>
+<property><name>dfs.namenode.servicerpc-bind-host</name><value>0.0.0.0</value></property>
+<property><name>dfs.namenode.http-bind-host</name><value>0.0.0.0</value></property>
+<property><name>dfs.namenode.https-bind-host</name><value>0.0.0.0</value></property>
+<property><name>dfs.client.use.datanode.hostname</name><value>true</value></property>
+<property><name>dfs.datanode.use.datanode.hostname</name><value>true</value></property>
+<property><name>dfs.client.block.write.replace.datanode.on.failure.policy</name><value>NEVER</value></property>
+<property><name>dfs.datanode.data.dir</name><value>file:///hadoop/dfs/data</value></property>
+<property><name>dfs.webhdfs.enabled</name><value>true</value></property>
+<property><name>dfs.replication</name><value>1</value></property>
+<property><name>dfs.block.size</name><value>67108864</value></property>
+<property><name>dfs.permissions.enabled</name><value>false</value></property>
+<property><name>dfs.namenode.name.dir</name><value>file:///hadoop/dfs/name</value></property>
+<property><name>dfs.namenode.rpc-bind-host</name><value>0.0.0.0</value></property>
+<property><name>dfs.namenode.servicerpc-bind-host</name><value>0.0.0.0</value></property>
+<property><name>dfs.namenode.http-bind-host</name><value>0.0.0.0</value></property>
+<property><name>dfs.namenode.https-bind-host</name><value>0.0.0.0</value></property>
+<property><name>dfs.client.use.datanode.hostname</name><value>true</value></property>
+<property><name>dfs.datanode.use.datanode.hostname</name><value>true</value></property>
 </configuration>
