@@ -1,7 +1,7 @@
 services:
   # PostgreSQL Metastore for Hive
   postgres:
-    image: postgres:13
+    image: postgres:11
     container_name: postgres-metastore
     environment:
       POSTGRES_DB: metastore

@@ -2,7 +2,7 @@
 
 # Quick Fix for Hive Metastore Schema Issue
 # Simple wrapper around the comprehensive fix script
-# Optimized for Windows/WSL users
+# Optimized for Windows/WSL users and Docker Compose v2
 
 set -e
 
@@ -34,6 +34,17 @@ if [[ $(uname -r) == *microsoft* ]] || [[ $(uname -r) == *WSL* ]]; then
     echo -e "${YELLOW}Windows/WSL environment detected${NC}"
     export DOCKER_BUILDKIT=0
     export COMPOSE_DOCKER_CLI_BUILD=0
+fi
+
+# Check Docker Compose availability
+if docker compose version &> /dev/null; then
+    echo -e "${GREEN}Using Docker Compose v2${NC}"
+elif command -v docker-compose &> /dev/null; then
+    echo -e "${GREEN}Using Docker Compose v1${NC}"
+else
+    echo -e "${RED}Error: Docker Compose not found${NC}"
+    echo -e "${YELLOW}Please install Docker Compose${NC}"
+    exit 1
 fi
 
 # Run the main fix
