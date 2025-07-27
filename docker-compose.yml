@@ -38,6 +38,12 @@ services:
       - "8020:8020"  # Namenode RPC
     networks:
       - hadoop-network
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9870 || exit 1"]
       interval: 30s
@@ -62,6 +68,12 @@ services:
       - "9864:9864"  # Datanode Web UI
     networks:
       - hadoop-network
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
     depends_on:
       namenode:
         condition: service_healthy
