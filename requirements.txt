@@ -20,6 +20,10 @@ sasl>=0.3.1
 thrift_sasl>=0.4.3
 hdfs3>=0.3.1
 
+# PySpark for Big Data Analytics
+pyspark==3.5.0
+py4j>=0.10.9
+
 # Jupyter and Notebook Environment
 jupyter>=1.0.0
 jupyterlab>=3.4.0
@@ -39,6 +43,10 @@ pingouin>=0.5.0
 xgboost>=1.6.0
 lightgbm>=3.3.0
 imbalanced-learn>=0.9.0
+
+# Advanced ML libraries for UNSW-NB15 analytics
+shap>=0.41.0
+lime>=0.2.0.1
 
 # Network Analysis
 networkx>=2.8.0
